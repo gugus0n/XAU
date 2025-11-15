@@ -228,6 +228,11 @@
 
         <div class="charts-container">
             <div class="chart-wrapper">
+                <h2>Account Size vs Risk Analysis</h2>
+                <canvas id="accountRiskChart"></canvas>
+            </div>
+
+            <div class="chart-wrapper">
                 <h2>Risk Percentage Lines</h2>
                 <canvas id="riskChart"></canvas>
             </div>
@@ -274,10 +279,144 @@
         const POSITION_SIZES = [0.01, 0.02, 0.03, 0.05, 0.06, 0.07, 0.08, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50];
 
         // Chart instances
-        let riskChart, fibonacciChart, positionChart;
+        let accountRiskChart, riskChart, fibonacciChart, positionChart;
 
         // Initialize charts
         function initCharts() {
+            // Account Size vs Risk Chart (NEW - First chart)
+            const accountRiskCtx = document.getElementById('accountRiskChart').getContext('2d');
+            
+            // Generate account sizes from 100 to 10000
+            const accountSizes = [];
+            for (let i = 100; i <= 10000; i += 200) {
+                accountSizes.push(i);
+            }
+            
+            // Create datasets for each risk percentage
+            const riskPercentageDatasets = RISK_PERCENTAGES.map((percentage, index) => {
+                const colors = [
+                    'rgba(220, 53, 69, 0.8)',   // Red for 60%
+                    'rgba(255, 99, 71, 0.8)',   // Tomato for 30%
+                    'rgba(255, 159, 64, 0.8)',  // Orange for 11%
+                    'rgba(255, 206, 86, 0.8)',  // Yellow for 8%
+                    'rgba(75, 192, 192, 0.8)',  // Teal for 5%
+                    'rgba(54, 162, 235, 0.8)',  // Blue for 2%
+                    'rgba(153, 102, 255, 0.8)', // Purple for 1.5%
+                    'rgba(201, 203, 207, 0.8)', // Grey for 1%
+                    'rgba(102, 126, 234, 0.8)'  // Light blue for 0.5%
+                ];
+                
+                return {
+                    label: `${percentage}% Risk`,
+                    data: accountSizes.map(size => (size * percentage / 100).toFixed(2)),
+                    borderColor: colors[index],
+                    backgroundColor: colors[index].replace('0.8', '0.1'),
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                };
+            });
+            
+            // Create datasets for selected position sizes at 10-point stop
+            const selectedPositionSizes = [0.01, 0.03, 0.05, 0.08, 0.10, 0.30, 0.50];
+            const positionSizeDatasets = selectedPositionSizes.map((posSize, index) => {
+                const posColors = [
+                    'rgba(139, 0, 0, 0.6)',     // Dark red
+                    'rgba(184, 134, 11, 0.6)',  // Dark goldenrod
+                    'rgba(0, 100, 0, 0.6)',     // Dark green
+                    'rgba(0, 0, 139, 0.6)',     // Dark blue
+                    'rgba(128, 0, 128, 0.6)',   // Purple
+                    'rgba(255, 20, 147, 0.6)',  // Deep pink
+                    'rgba(0, 139, 139, 0.6)'    // Dark cyan
+                ];
+                
+                const riskPerPoint = posSize * POINT_VALUE;
+                const riskAt10Points = riskPerPoint * 10;
+                
+                return {
+                    label: `Position ${posSize} (10pt stop)`,
+                    data: accountSizes.map(() => riskAt10Points),
+                    borderColor: posColors[index],
+                    backgroundColor: posColors[index].replace('0.6', '0.1'),
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0
+                };
+            });
+            
+            accountRiskChart = new Chart(accountRiskCtx, {
+                type: 'line',
+                data: {
+                    labels: accountSizes,
+                    datasets: [...riskPercentageDatasets, ...positionSizeDatasets]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Account Size vs Risk Amount (Solid lines = Risk %, Dashed = Position Sizes at 10pt stop)',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += '$' + context.parsed.y;
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Account Size ($)'
+                            },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return '$' + this.getLabelForValue(value);
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Risk Amount ($)'
+                            },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+
             // Risk Percentage Chart
             const riskCtx = document.getElementById('riskChart').getContext('2d');
             riskChart = new Chart(riskCtx, {
