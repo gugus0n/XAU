@@ -317,27 +317,38 @@
                 };
             });
             
-            // Create datasets for selected position sizes at 10-point stop
-            const selectedPositionSizes = [0.01, 0.03, 0.05, 0.08, 0.10, 0.30, 0.50];
-            const positionSizeDatasets = selectedPositionSizes.map((posSize, index) => {
+            // Create datasets for all position sizes showing % of account at risk
+            const positionSizeDatasets = POSITION_SIZES.map((posSize, index) => {
                 const posColors = [
-                    'rgba(139, 0, 0, 0.6)',     // Dark red
-                    'rgba(184, 134, 11, 0.6)',  // Dark goldenrod
-                    'rgba(0, 100, 0, 0.6)',     // Dark green
-                    'rgba(0, 0, 139, 0.6)',     // Dark blue
-                    'rgba(128, 0, 128, 0.6)',   // Purple
-                    'rgba(255, 20, 147, 0.6)',  // Deep pink
-                    'rgba(0, 139, 139, 0.6)'    // Dark cyan
+                    'rgba(139, 0, 0, 0.7)',     // Dark red
+                    'rgba(184, 134, 11, 0.7)',  // Dark goldenrod
+                    'rgba(0, 100, 0, 0.7)',     // Dark green
+                    'rgba(0, 0, 139, 0.7)',     // Dark blue
+                    'rgba(128, 0, 128, 0.7)',   // Purple
+                    'rgba(255, 20, 147, 0.7)',  // Deep pink
+                    'rgba(0, 139, 139, 0.7)',   // Dark cyan
+                    'rgba(139, 69, 19, 0.7)',   // Saddle brown
+                    'rgba(85, 107, 47, 0.7)',   // Dark olive green
+                    'rgba(72, 61, 139, 0.7)',   // Dark slate blue
+                    'rgba(47, 79, 79, 0.7)',    // Dark slate gray
+                    'rgba(105, 105, 105, 0.7)', // Dim gray
+                    'rgba(199, 21, 133, 0.7)',  // Medium violet red
+                    'rgba(25, 25, 112, 0.7)'    // Midnight blue
                 ];
                 
                 const riskPerPoint = posSize * POINT_VALUE;
                 const riskAt10Points = riskPerPoint * 10;
                 
                 return {
-                    label: `Position ${posSize} (10pt stop)`,
-                    data: accountSizes.map(() => riskAt10Points),
-                    borderColor: posColors[index],
-                    backgroundColor: posColors[index].replace('0.6', '0.1'),
+                    label: `Position ${posSize} (% risk)`,
+                    data: accountSizes.map(accountSize => {
+                        // Calculate what % of the account this position's risk represents
+                        const riskPercentage = (riskAt10Points / accountSize) * 100;
+                        // Return the dollar amount that represents this percentage
+                        return (accountSize * riskPercentage / 100).toFixed(2);
+                    }),
+                    borderColor: posColors[index % posColors.length],
+                    backgroundColor: posColors[index % posColors.length].replace('0.7', '0.1'),
                     borderWidth: 2,
                     borderDash: [5, 5],
                     fill: false,
@@ -367,7 +378,7 @@
                         },
                         title: {
                             display: true,
-                            text: 'Account Size vs Risk Amount (Solid lines = Risk %, Dashed = Position Sizes at 10pt stop)',
+                            text: 'Account Size vs Risk Amount (Solid = Risk %, Dashed = Position Sizes % of Account)',
                             font: {
                                 size: 14
                             }
@@ -380,6 +391,15 @@
                                         label += ': ';
                                     }
                                     label += '$' + context.parsed.y;
+                                    
+                                    // Add percentage for position size lines
+                                    if (label.includes('Position')) {
+                                        const accountSize = context.parsed.x;
+                                        const riskAmount = context.parsed.y;
+                                        const percentage = ((riskAmount / accountSize) * 100).toFixed(2);
+                                        label += ` (${percentage}% of account)`;
+                                    }
+                                    
                                     return label;
                                 }
                             }
