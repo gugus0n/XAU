@@ -39,6 +39,7 @@ The calculator will show:
 - **XAU** = Gold trading symbol
 - **1 Point** = $500 per 1 lot
 - **Example**: 0.05 lot position with 10-point stop = $250 risk (0.05 × $500 × 10)
+<img width="1028" height="737" alt="image" src="https://github.com/user-attachments/assets/6c430cd7-4927-44c1-8753-27fb60974544" />
 
 ## Margin Calculation Example
 
