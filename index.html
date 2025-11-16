@@ -335,8 +335,8 @@
             // Create datasets
             const datasets = [
                 {
-                    label: 'Total Risk ($)',
-                    data: riskRewardData.map(d => d.risk.toFixed(2)),
+                    label: 'Total Risk (%)',
+                    data: riskRewardData.map(d => d.riskPercent.toFixed(2)),
                     borderColor: 'rgba(220, 53, 69, 0.8)',
                     backgroundColor: 'rgba(220, 53, 69, 0.2)',
                     borderWidth: 3,
@@ -344,8 +344,8 @@
                     tension: 0.1
                 },
                 {
-                    label: 'Total Reward ($)',
-                    data: riskRewardData.map(d => d.reward.toFixed(2)),
+                    label: 'Total Reward (%)',
+                    data: riskRewardData.map(d => ((d.reward / d.accountSize) * 100).toFixed(2)),
                     borderColor: 'rgba(40, 167, 69, 0.8)',
                     backgroundColor: 'rgba(40, 167, 69, 0.2)',
                     borderWidth: 3,
@@ -353,8 +353,8 @@
                     tension: 0.1
                 },
                 {
-                    label: 'Net Profit ($)',
-                    data: riskRewardData.map(d => d.netProfit.toFixed(2)),
+                    label: 'Net Profit (%)',
+                    data: riskRewardData.map(d => ((d.netProfit / d.accountSize) * 100).toFixed(2)),
                     borderColor: 'rgba(0, 123, 255, 0.8)',
                     backgroundColor: 'rgba(0, 123, 255, 0.2)',
                     borderWidth: 3,
@@ -375,13 +375,13 @@
                 
                 datasets.push({
                     label: `${percentage}% Risk Line`,
-                    data: accountSizes.map(size => (size * percentage / 100).toFixed(2)),
+                    data: accountSizes.map(() => percentage),
                     borderColor: colors[index],
                     backgroundColor: colors[index].replace('0.5', '0.1'),
                     borderWidth: 1,
                     borderDash: [5, 5],
                     fill: false,
-                    tension: 0.1
+                    tension: 0
                 });
             });
             
@@ -420,16 +420,16 @@
                                     let label = context.dataset.label || '';
                                     
                                     if (label) {
-                                        label += ': $' + context.parsed.y;
+                                        label += ': ' + context.parsed.y + '%';
                                     }
                                     
                                     // Add extra info for main lines
                                     if (label.includes('Risk') && !label.includes('Line')) {
-                                        label += ` (${data.riskPercent.toFixed(2)}% of account, Lot: ${data.lot})`;
+                                        label += ` ($${data.risk.toFixed(2)}, Lot: ${data.lot})`;
                                     } else if (label.includes('Reward')) {
-                                        label += ` (${riskRewardRatio}:1 R:R)`;
+                                        label += ` ($${data.reward.toFixed(2)}, ${riskRewardRatio}:1 R:R)`;
                                     } else if (label.includes('Net Profit')) {
-                                        label += ` (Reward - Risk)`;
+                                        label += ` ($${data.netProfit.toFixed(2)})`;
                                     }
                                     
                                     return label;
@@ -462,11 +462,11 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Amount ($)'
+                                text: 'Risk % of Account'
                             },
                             ticks: {
                                 callback: function(value, index, values) {
-                                    return '$' + value;
+                                    return value + '%';
                                 }
                             }
                         }
@@ -678,23 +678,29 @@
                 const totalRisk = riskPer * numContracts;
                 const totalReward = totalRisk * riskRewardRatio;
                 const netProfit = totalReward - totalRisk;
+                const riskPercent = (totalRisk / accSize) * 100;
+                const rewardPercent = (totalReward / accSize) * 100;
+                const netProfitPercent = (netProfit / accSize) * 100;
                 
                 return {
                     risk: totalRisk,
                     reward: totalReward,
-                    netProfit: netProfit
+                    netProfit: netProfit,
+                    riskPercent: riskPercent,
+                    rewardPercent: rewardPercent,
+                    netProfitPercent: netProfitPercent
                 };
             });
             
             accountRiskChart.data.labels = accountSizes;
-            accountRiskChart.data.datasets[0].data = riskRewardData.map(d => d.risk.toFixed(2));
-            accountRiskChart.data.datasets[1].data = riskRewardData.map(d => d.reward.toFixed(2));
-            accountRiskChart.data.datasets[2].data = riskRewardData.map(d => d.netProfit.toFixed(2));
+            accountRiskChart.data.datasets[0].data = riskRewardData.map(d => d.riskPercent.toFixed(2));
+            accountRiskChart.data.datasets[1].data = riskRewardData.map(d => d.rewardPercent.toFixed(2));
+            accountRiskChart.data.datasets[2].data = riskRewardData.map(d => d.netProfitPercent.toFixed(2));
             
-            // Update risk percentage lines
+            // Update risk percentage lines (now horizontal at their percentage values)
             for (let i = 3; i < accountRiskChart.data.datasets.length; i++) {
                 const percentage = RISK_PERCENTAGES[i - 3];
-                accountRiskChart.data.datasets[i].data = accountSizes.map(size => (size * percentage / 100).toFixed(2));
+                accountRiskChart.data.datasets[i].data = accountSizes.map(() => percentage);
             }
             
             accountRiskChart.options.plugins.title.text = `Risk vs Reward Projection (${numContracts} contracts, ${riskRewardRatio}:1 R:R, ${stopLossPoints}pt stop)`;
