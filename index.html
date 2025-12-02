@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EV & Risk/Reward Calculator</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header>
+    <h1>EV Calculator · Lot Sizes · 10-point move</h1>
+    <p>Statisch, lokal, kein Backend — lade die Seite herunter oder hoste sie als GitHub Pages.</p>
+  </header>
+
+  <main>
+    <section id="ev-calculator" class="card">
+      <h2>1) EV (Expected Value) Calculator</h2>
+      <div class="grid">
+        <label>Win probability (%)<input id="winProb" type="number" step="0.1" min="0" max="100" value="40"></label>
+        <label>Average win (points)<input id="avgWin" type="number" step="0.1" value="20"></label>
+        <label>Average loss (points)<input id="avgLoss" type="number" step="0.1" value="10"></label>
+        <label>Fees / commission per trade ($)<input id="fees" type="number" step="0.01" value="1.00"></label>
+        <label>Lot size (contracts)<input id="lotSize" type="number" step="1" min="1" value="1"></label>
+        <label>Point value ($ per point per contract)<input id="pointValue" type="number" step="0.01" value="10.00"></label>
+      </div>
+
+      <div class="actions">
+        <button id="calcEV">Berechne EV</button>
+        <button id="resetEV" class="muted">Reset</button>
+      </div>
+
+      <div id="evResults" class="results" aria-live="polite"></div>
+    </section>
+
+    <section id="lot-list" class="card">
+      <h2>2) Lot sizes / Presets</h2>
+      <p>Vordefinierte Presets. Du kannst eigene hinzufügen.</p>
+      <ul id="presets">
+        <!-- Presets injected by JS -->
+      </ul>
+
+      <form id="addPresetForm" class="inline-form">
+        <input id="presetName" placeholder="Name (z. B. Micro E-mini)" required>
+        <input id="presetPointValue" type="number" step="0.01" placeholder="$ per point" required>
+        <input id="presetLot" type="number" step="1" placeholder="contracts" required>
+        <button type="submit">Hinzufügen</button>
+      </form>
+    </section>
+
+    <section id="ten-point" class="card">
+      <h2>3) 10-point move calculator (risk & reward)</h2>
+      <div class="grid">
+        <label>Entry price<input id="entryPrice" type="number" step="0.01" value="1000"></label>
+        <label>Stop loss (points)<input id="stopPoints" type="number" step="0.1" value="5"></label>
+        <label>Target (points)<input id="targetPoints" type="number" step="0.1" value="10"></label>
+        <label>Punkte für Berechnung<input id="pointsToCheck" type="number" step="0.1" value="10"></label>
+        <label>Lot size (contracts)<input id="tpLotSize" type="number" step="1" min="1" value="1"></label>
+        <label>Point value ($ per point per contract)<input id="tpPointValue" type="number" step="0.01" value="10.00"></label>
+      </div>
+
+      <div class="actions">
+        <button id="calcTenPoint">Berechne Risiko/Reward</button>
+        <button id="resetTP" class="muted">Reset</button>
+      </div>
+
+      <div id="tpResults" class="results" aria-live="polite"></div>
+    </section>
+
+    <section id="orb-placeholder" class="card">
+      <h2>4) Statistik (ORB breakouts) — Schritt 2</h2>
+      <p>
+        Platzhalter für die ORB-Statistik (GLD, GCG). Für die nächste Implementationsstufe brauche ich entweder:
+      </p>
+      <ol>
+        <li>Dein bestehendes Script (hochladen) — dann portiere ich die Logik in JS/Python und baue die Stats als CSV/Chart ein.</li>
+        <li>oder historische Preisdaten (CSV) für die Symbole GLD und GCG — dann implementiere ich die ORB-Detection und berechne Trefferquote / avg return usw.</li>
+      </ol>
+      <p>Wenn du bereit bist, lade das Script oder die Daten hoch oder sag mir, dass ich die Daten automatisch herunterladen soll (dazu bräuchte ich eine Quellenwahl wie Yahoo/AlphaVantage).</p>
+    </section>
+  </main>
+
+  <footer>
+    <small>Erstellt von Copilot · statische Demo · Gib mir das Script / die Daten für Schritt 2.</small>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
